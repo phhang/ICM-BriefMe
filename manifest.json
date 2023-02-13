@@ -35,6 +35,9 @@
         "tabs",
         "storage"
     ],
+    "host_permissions": [
+        "https://portal.microsofticm.com/imp/v3/incidents/*"
+    ],
     "commands": {
         "_execute_action": {
           "suggested_key": {

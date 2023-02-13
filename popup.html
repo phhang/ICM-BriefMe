@@ -11,6 +11,8 @@
 				border-radius: 4px;
 				background-color: #6c71c4;
 				color: white;
+				width: 100px;
+				height: 60px;
 			}
 
 			button:hover {
@@ -28,15 +30,21 @@
 		<p>Empower your troubleshooting, elevate your experience.</p>
 		<p>This plugin will genearte a summary of the incident. You may need to wait for ICM to fully load all discussion entries. </p>
 		<table style="min-width: 300px; margin-top: 10px;">
-			<td><button id="button">BriefMe</button></td>
-			<td><a href="https://platform.openai.com/docs/introduction" target="_blank"><button style="background-color: #2aa198;">Help</button></a></td>
-			<td style="text-align: right; padding-left: 40px;">
-				<div style="font-size: 12px; color: #657b83; width: 70%;"><strike>Best viewed with Internet Explorer 6.0 or below</strike></div>
-			</td>
+			<tr>
+				<td><button id="briefMeButton" style="background-color: #2aa198;">BriefMe</button></td>
+				<td><button id="unifyQueryButton">Unify</button></td>
+				<td><button id="memoryDashboardButton">Memory Dashboard</button></td>
+			</tr>
+			<tr>
+				<td><button id="restartsQueryButton">Restarts</button></td>
+				<td><button id="crashQueryButton">Crash</button></td>
+				<td><button id="jarvisDashboardButton">Jarvis Dashboard</button></td>
+			<tr>
 		</table>
         <div id="briefMeText">
             
         </div>
 		<script defer src="popup.js"></script>
+		<div style="font-size: 12px; color: #657b83; width: 70%;"><strike>Best viewed with Internet Explorer 6.0 or below</strike></div>
 	</body>
 </html>
