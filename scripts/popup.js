@@ -8,6 +8,14 @@
 // }
 // console.log(allText);
 
+// Add event listener to foldTableButton, when clicked, use content.js to fold tables
+const foldTableButton = document.getElementById("foldTableButton");
+foldTableButton.addEventListener("click", async () => {
+    const [tab] = await chrome.tabs.query({active: true, currentWindow: true});
+    const response = await chrome.tabs.sendMessage(tab.id, {foldLargeTable: "true"});
+});
+
+// Add event listener to buttons, when clicked, get slice and open unify/etc...
 const unifyQueryButton = "unifyQueryButton";
 const jarvisDashboardButton = "jarvisDashboardButton";
 const memoryDashboardButton = "memoryDashboardButton";

@@ -1,9 +1,19 @@
 const debugModeFlag = true;
 const tableFoldThresholdRows = 5;
 const tableFoldThresholdColumns = 6;
+let foldCount = 0;
 
 const loadTime = performance.now();
 window.addEventListener('load', foldLargeTable);
+
+chrome.runtime.onMessage.addListener(
+    function(request, sender, sendResponse) {
+        if (request.foldLargeTable === "true" && foldCount === 0)
+            foldLargeTable();
+        else
+            console.log("foldLargeTable already called. Last fold count: " + foldCount);
+    }
+);
 
 function foldTableElement(divElement) {
     if (divElement === null) {
@@ -34,7 +44,6 @@ function foldTableElement(divElement) {
 function foldLargeTable(){
     const startTime = performance.now();
     const commentDivBody = document.querySelectorAll("div.body");
-    let foldCount = 0;
     for (var i = 0; i < commentDivBody.length; i++) {
         var divBody = commentDivBody[i];
         // TODO: Check case where: div.body span (div) table
