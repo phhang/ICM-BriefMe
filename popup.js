@@ -1,13 +1,3 @@
-// const commentDivBody = document.querySelectorAll("div.body");
-// var allText = "";
-// for (var i = commentDivBody.length - 1; i >= 0; i--) {
-//     // TODO: Use recursion to handle nested divs, remove table and kusto query
-//     var divBody = commentDivBody[i];
-//     const innerText = divBody.innerText;
-//     allText += innerText;
-// }
-// console.log(allText);
-
 // Add event listener to foldTableButton, when clicked, use content.js to fold tables
 const foldTableButton = document.getElementById("foldTableButton");
 foldTableButton.addEventListener("click", async () => {
@@ -91,3 +81,31 @@ function buttonActionFunction(buttonId) {
     return buildUrl(buttonId, textValue);
 }
 
+// const kustoStyleList = [
+//     'span[style="font-family: Calibri; font-size: 8pt"]', 
+//     'p[style="margin: 0; color: rgba(0, 0, 0, 1); font-size: medium"]',
+//     'details',
+//     'table',
+// ]
+// for (let i = 0; i < kustoStyleList.length; i++) {
+//     const style = kustoStyleList[i];
+//     const elementsToRemove = document.querySelectorAll(style);
+//     for (let j = 0; j < elementsToRemove.length; j++) {
+//         const elementToRemove = elementsToRemove[j];
+//         elementToRemove.remove();
+//     }
+// }
+// const commentDivBody = document.querySelectorAll("div.body");
+// var allText = "";
+// for (var i = commentDivBody.length - 1; i >= 0; i--) {
+//     var innerText = commentDivBody[i].innerText;
+//     allText += innerText;
+// }
+// console.log(allText.slice(0,6000));
+// console.log(allText.slice(-6000));
+
+// Here is a log from a customer reported incident:
+// I want you to ignore callstack, SQL, Kusto query. I want you to provide a summary of the incident:
+
+// Here is the lastest section of the log from a customer reported incident:
+// I want you to ignore callstack, SQL, Kusto query. I want you to provide the latest update of the incident:
