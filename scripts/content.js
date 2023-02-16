@@ -1,16 +1,14 @@
 const debugModeFlag = true;
-const tableFoldThresholdRows = 5;
-const tableFoldThresholdColumns = 6;
-let foldCount = 0;
+const tableFoldThresholdRows = 6;
+const tableFoldThresholdColumns = 8;
 
-const loadTime = performance.now();
-window.addEventListener('load', foldLargeTable);
+let foldCount = 0;
 
 chrome.runtime.onMessage.addListener(
     function(request, sender, sendResponse) {
         if (request.foldLargeTable === "true" && foldCount === 0)
             foldLargeTable();
-        else
+        else if (request.foldLargeTable === "true")
             console.log("foldLargeTable already called. Last fold count: " + foldCount);
     }
 );
@@ -70,6 +68,5 @@ function foldLargeTable(){
     if (debugModeFlag) {
         console.log(`foldCount: ${foldCount}`);
         console.log(`Extension Time taken: ${(endTime - startTime).toFixed(1)} ms`);
-        console.log(`ICM time taken: ${(startTime - loadTime).toFixed(1)} ms`);
     }
 }

@@ -42,7 +42,7 @@ function buttonActionFunction(buttonId) {
     function buildUrl(buttonId, slice){
         const unifyBaseUrl = "https://unify.services.dynamics.com/AX/Env/";
         const jarvisUrlTemplate = `https://portal.microsoftgeneva.com/dashboard/Dynamics_Prod/DynamicsAX7/Hot%2520Path%2520Metrics%2520-%2520SF%2520Tenant?overrides=[{%22query%22:%22//dataSources%22,%22key%22:%22account%22,%22replacement%22:%22D365FOEE_Prod%22},{%22query%22:%22//*[id%3D%27Environment%27]%22,%22key%22:%22value%22,%22replacement%22:%22${slice}%22},{%22query%22:%22//*[id%3D%27RoleInstance%27]%22,%22key%22:%22value%22,%22replacement%22:%22%22}]%20`;
-        const memoryUrlTemplate = `https://jarvis-west.dc.ad.msft.net/dashboard/Dynamics_Prod/DynamicsAX7/Runtime%2520HotPath?overrides=[{%22query%22:%22//*[id=%27%27]%22,%22key%22:%22value%22,%22replacement%22:%22D365FOEE_Prod%22},{%22query%22:%22//*[id=%27Environment%27]%22,%22key%22:%22value%22,%22replacement%22:%22${slice}%22},{%22query%22:%22//*[id=%27__Tenant%27]%22,%22key%22:%22value%22,%22replacement%22:%22%s%22},{%22query%22:%22//*[id=%27RoleInstance%27]%22,%22key%22:%22value%22,%22replacement%22:%22AOS1-${slice}%22}]%20`;
+        const memoryUrlTemplate = `https://dataexplorer.azure.com/dashboards/9d93764d-fcc6-4517-971d-8320de1ccae1?p-_startTime=7days&p-_endTime=now&p-_tenant=v-${slice}&p-_roleinstance=v-AOS1-${slice}#5947733d-be74-4c7d-87e2-3d65f12c42cb`;
         const restartUrlTemplate = `https://unify.services.dynamics.com/AX/Env/${slice}/Runtime/Crashes`
         const crashBaseUrl = "https://preview.dataexplorer.azure.com/dashboards/5ea40bb7-fd07-4bb9-b105-3468c073da26?p-_startTime=7days&p-_endTime=now&p-_environmentId=v-"
         let url = "";
@@ -80,32 +80,3 @@ function buttonActionFunction(buttonId) {
     }
     return buildUrl(buttonId, textValue);
 }
-
-// const kustoStyleList = [
-//     'span[style="font-family: Calibri; font-size: 8pt"]', 
-//     'p[style="margin: 0; color: rgba(0, 0, 0, 1); font-size: medium"]',
-//     'details',
-//     'table',
-// ]
-// for (let i = 0; i < kustoStyleList.length; i++) {
-//     const style = kustoStyleList[i];
-//     const elementsToRemove = document.querySelectorAll(style);
-//     for (let j = 0; j < elementsToRemove.length; j++) {
-//         const elementToRemove = elementsToRemove[j];
-//         elementToRemove.remove();
-//     }
-// }
-// const commentDivBody = document.querySelectorAll("div.body");
-// var allText = "";
-// for (var i = commentDivBody.length - 1; i >= 0; i--) {
-//     var innerText = commentDivBody[i].innerText;
-//     allText += innerText;
-// }
-// console.log(allText.slice(0,6000));
-// console.log(allText.slice(-6000));
-
-// Here is a log from a customer reported incident:
-// I want you to ignore callstack, SQL, Kusto query. I want you to provide a summary of the incident:
-
-// Here is the lastest section of the log from a customer reported incident:
-// I want you to ignore callstack, SQL, Kusto query. I want you to provide the latest update of the incident:

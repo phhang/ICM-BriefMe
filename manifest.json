@@ -1,7 +1,7 @@
 {
     "manifest_version": 3,
-    "name": "ICM BriefMe",
-    "description": "Provides a brief summary of the current page, and some ICM enhancements.",
+    "name": "TableTidy & DashboardDash",
+    "description": "Some ICM enhancements.",
     "version": "1.0",
     "icons": {
         "16": "images/icon-16.png",
@@ -20,6 +20,10 @@
           "run_at": "document_end"
         }
     ],
+    "content_security_policy": 
+    {
+      "extension_pages": "script-src 'self'; object-src 'self'"
+    },
     "action": {
         "default_popup": "popup.html",
         "default_icon": {
@@ -32,8 +36,7 @@
     "permissions": [
         "activeTab",
         "scripting",
-        "tabs",
-        "storage"
+        "tabs"
     ],
     "host_permissions": [
         "https://portal.microsofticm.com/imp/v3/incidents/*"
