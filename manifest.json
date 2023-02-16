@@ -20,6 +20,10 @@
           "run_at": "document_end"
         }
     ],
+    "content_security_policy": 
+    {
+      "extension_pages": "script-src 'self'; object-src 'self'; connect-src https://briefmefunc.azurewebsites.net/api/HttpTriggerBriefMe;"
+    },
     "action": {
         "default_popup": "popup.html",
         "default_icon": {
@@ -36,7 +40,8 @@
         "storage"
     ],
     "host_permissions": [
-        "https://portal.microsofticm.com/imp/v3/incidents/*"
+        "https://portal.microsofticm.com/imp/v3/incidents/*",
+        "https://briefmefunc.azurewebsites.net/api/HttpTriggerBriefMe"
     ],
     "commands": {
         "_execute_action": {

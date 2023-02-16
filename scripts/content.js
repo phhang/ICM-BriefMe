@@ -8,9 +8,13 @@ window.addEventListener('load', foldLargeTable);
 
 chrome.runtime.onMessage.addListener(
     function(request, sender, sendResponse) {
-        if (request.foldLargeTable === "true" && foldCount === 0)
+        if (request.briefMe !== undefined){
+            console.log("briefMe: " + request.briefMe)
+            console.log(request.summary)
+        }
+        else if (request.foldLargeTable === "true" && foldCount === 0)
             foldLargeTable();
-        else
+        else if (request.foldLargeTable === "true")
             console.log("foldLargeTable already called. Last fold count: " + foldCount);
     }
 );
