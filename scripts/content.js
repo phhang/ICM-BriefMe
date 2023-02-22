@@ -5,6 +5,7 @@ chrome.runtime.onMessage.addListener(
         if (request.briefMe !== undefined){
             console.log("briefMe: " + request.briefMe)
             console.log(request.summary)
+            console.log(request.perfStats)
         }
     }
 );

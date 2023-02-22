@@ -19,16 +19,13 @@ handleButtonClick("currentStatusButton");
 function handleButtonClick(buttonId) {
     const button = document.getElementById(buttonId);
     button.addEventListener("click", async () => {
+        const startTime = performance.now();
         // Disable button to prevent multiple clicks
         button.disabled = true;
         const buttonContent = button.innerText;
         button.innerText = "Loading...";
         // Get all discussion text content
         const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-        let results = await chrome.scripting.executeScript({
-            target: { tabId: tab.id },
-            function: removeKustoElements
-        });
         let alltextResult = await chrome.scripting.executeScript({
             target: { tabId: tab.id },
             function: joinAllText
@@ -37,24 +34,33 @@ function handleButtonClick(buttonId) {
         const cappedText = buttonId == "briefMeButton" ? 
             alltextResult[0].result.slice(0, 6000) : 
             alltextResult[0].result.slice(-6000);
+        const requestStartTime = performance.now();
         const summaryText = await sendRequestToAzureTest(cappedText);
         const briefMeText = document.getElementById("briefMeText");
         briefMeText.innerText = summaryText;
+        const requestEndTime = performance.now();
         saveBriefMeTextState();
         // Enable button
         button.disabled = false;
         button.innerText = buttonContent;
+        // Send message to content.js
+        const endTime = performance.now();
         const briefMeMode = buttonId == "briefMeButton" ? "brifeMe" : "SITREP";
+        const perfStats = {
+            "time": (endTime - startTime).toFixed(2) + "ms",
+            "requestTime": (requestEndTime - requestStartTime).toFixed(2) + "ms"
+        };
         const contentResponse = await chrome.tabs.sendMessage(tab.id, {
             briefMe: briefMeMode,
-            summary: summaryText
+            summary: summaryText,
+            perfStats: perfStats
         });
     });
 }
 
 
 async function sendRequestToAzureTest(icmText) {
-    await new Promise(r => setTimeout(r, 3000));
+    await new Promise(r => setTimeout(r, 2000));
     return icmText.slice(0, 100) + "\n A customer reported that their production environment was operating slowly, with very little memory available.";
 }
 
@@ -77,28 +83,34 @@ async function sendRequestToAzure(icmText) {
     return summaryText;
 }
 
-function removeKustoElements() {
-    const kustoStyleList = [
-        'span[style="font-family: Calibri; font-size: 8pt"]', 
-        'p[style="margin: 0; color: rgba(0, 0, 0, 1); font-size: medium"]',
-        'details',
-        'table',
-    ]
-    for (let i = 0; i < kustoStyleList.length; i++) {
-        const style = kustoStyleList[i];
-        const elementsToRemove = document.querySelectorAll(style);
-        for (let j = 0; j < elementsToRemove.length; j++) {
-            const elementToRemove = elementsToRemove[j];
-            elementToRemove.remove();
+function joinAllText() {
+    function removeKustoElements(current) {
+        const kustoStyleList = [
+            'span[style="font-family: Calibri; font-size: 8pt"]', 
+            'p[style="margin: 0; color: rgba(0, 0, 0, 1); font-size: medium"]',
+            'details',
+            'table',
+        ]
+        for (let i = 0; i < kustoStyleList.length; i++) {
+            const style = kustoStyleList[i];
+            const elementsToRemove = current.querySelectorAll(style);
+            for (let j = 0; j < elementsToRemove.length; j++) {
+                const elementToRemove = elementsToRemove[j];
+                elementToRemove.remove();
+            }
         }
     }
-}
-
-function joinAllText() {
+    
     const commentDivBody = document.querySelectorAll("div.body");
     var allText = "";
-    for (var i = commentDivBody.length - 2; i >= 0; i--) { // -2 to skip the last comment(details)
-        var innerText = commentDivBody[i].innerText;
+    for (var i = commentDivBody.length - 1; i >= 0; i--) { 
+        // skip the last comment(details)
+        if (i == commentDivBody.length - 1) {
+            continue;
+        }
+        const clonedElement = commentDivBody[i].cloneNode(true);
+        removeKustoElements(clonedElement);
+        var innerText = clonedElement.innerText;
         allText += innerText;
     }
     return allText;
