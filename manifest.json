@@ -37,7 +37,8 @@
         "activeTab",
         "scripting",
         "tabs",
-        "storage"
+        "storage",
+        "identity"
     ],
     "host_permissions": [
         "https://portal.microsofticm.com/imp/v3/incidents/*",

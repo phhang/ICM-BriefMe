@@ -1,11 +1,50 @@
+/*
+* Load the previous state of the popup page from storage
+*/
+
 const briefMeText = document.getElementById('briefMeText');
 // Load the previous state of the popup page from storage
 chrome.storage.local.get('briefMeTextState', (result) => {
     if (result.briefMeTextState) {
-      // Restore the previous state of the popup page
-      briefMeText.innerText = result.briefMeTextState;
+        // Restore the previous state of the popup page
+        briefMeText.innerText = result.briefMeTextState;
     }
-  });
+});
+
+// Load accessToken from storage if it exists
+chrome.storage.local.get(['accessToken', 'accessTokenExpiry'], (result) => {
+    if (result.accessToken) {
+        // Restore the previous state of the popup page
+        const accessToken = result.accessToken;
+        const accessTokenExpiry = result.accessTokenExpiry;
+        const now = new Date();
+        if (accessTokenExpiry > now) {
+            // Access token is still valid
+            const loginButton = document.getElementById("loginButton");
+            changeWelcomeMsg(accessToken);
+            // hide login button
+            loginButton.style.display = "none";
+        } else {
+            // Access token has expired
+            chrome.storage.local.remove('accessToken');
+            chrome.storage.local.remove('accessTokenExpiry');
+        }
+    }
+});
+
+function changeWelcomeMsg(accessToken) {
+    const JwtPayload = JSON.parse(atob(accessToken.split('.')[1])); // Decode the JWT payload (second part of the token)
+    const welcomeMsg = document.getElementById("WelcomeMsg");
+    welcomeMsg.innerText = "Welcome, current user: " + JwtPayload.upn;
+    const loginButton = document.getElementById("loginButton");
+    // Hide login button
+    loginButton.style.display = "none";
+}
+
+/*
+* Add event listeners
+*/ 
+
 // Save the current state of the popup page to storage
 function saveBriefMeTextState() {
     const briefMeText = document.getElementById('briefMeText');
@@ -57,7 +96,6 @@ function handleButtonClick(buttonId) {
         });
     });
 }
-
 
 async function sendRequestToAzureTest(icmText) {
     await new Promise(r => setTimeout(r, 2000));
@@ -115,4 +153,37 @@ function joinAllText() {
     }
     return allText;
 }
+
+// Add event listener to login button
+const loginButton = document.getElementById("loginButton");
+loginButton.addEventListener("click", async () => {
+    const redirect_uri = chrome.identity.getRedirectURL()
+    const tenant_id = "72f988bf-86f1-41af-91ab-2d7cd011db47";
+    const client_id = "b14aa3b9-e15e-4522-a70d-520854e6f595";
+    let authorizing = chrome.identity.launchWebAuthFlow(
+        {
+          url: 'https://login.microsoftonline.com/' + tenant_id + '/oauth2/v2.0/authorize?' + // <= here tenant id or just common
+            'response_type=token' +
+            '&response_mode=fragment' +
+            '&prompt=login' +
+            '&client_id=' + client_id + // <= here client id from azure console
+            '&redirect_uri=' + redirect_uri +
+            '&scope=openid',
+          interactive: true
+        }
+    );
+    function validate(redirect_url) {
+        const urlParams = new URLSearchParams(redirect_url.split('#')[1]); // Get the query params after the #
+        const accessToken = urlParams.get('access_token');
+        const expiresIn = urlParams.get('expires_in');
+        // Set expire time using current time + expiresIn to int in second
+        const expireTime = new Date().getTime() + parseInt(expiresIn) * 1000;
+        // Save the access token and expire time to local storage
+        chrome.storage.local.set({ "accessToken": accessToken, "accessTokenExpiry": expireTime });
+        // Decode the JWT payload (second part of the token)
+        
+        changeWelcomeMsg(accessToken);
+    }
+    authorizing.then(validate, console.error);
+});
 
