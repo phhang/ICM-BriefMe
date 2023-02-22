@@ -7,12 +7,12 @@
 				outline: none;
 				border-color: white;
 				padding: 8px 16px;
-				font-size: 16px;
+				font-size: 14px;
 				border-radius: 4px;
 				background-color: #6c71c4;
 				color: white;
-				width: 100px;
-				height: 60px;
+				width: 80px;
+				height: 40px;
 			}
 
 			button:hover {
@@ -21,7 +21,17 @@
 			}
 
 			p {
+				font-size: 14px;
+			}
+
+			.paragraph {
+				padding: 10px;
+				background-color: blanchedalmond;
+				border: 1px solid #ccc;
+				border-radius: 5px;
 				font-size: 16px;
+				line-height: 1.5;
+				font-family:'Droid Sans',Arial,Verdana,Tahoma;
 			}
 		</style>
 	</head>
@@ -32,12 +42,12 @@
 		<table style="min-width: 300px; margin-top: 10px;">
 			<tr>
 				<td><button id="briefMeButton" style="background-color: #2aa198;">BriefMe</button></td>
-				<td><button id="currentStatusButton" style="background-color: #036860;">Current Status</button></td>
+				<td><button id="currentStatusButton" style="background-color: #036860;" title="Situation Report">SITREP</button></td>
 			</tr>
 		</table>
-        <div id="briefMeText" style="font-family:'Times New Roman', Times, serif;font-size: medium;">
-            A customer reported that their production environment was operating slowly, with very little memory available on their AOS servers. They were receiving multiple 429 error messages from D365 through their API, which had been ongoing since earlier in the day. Investigation revealed that much of the throttling was due to the customer's own limits on high-priority traffic. Support asked if the customer would like to upgrade their instance, with the caveat that it would need to be restarted, and the customer agreed. Support subsequently scaled up the instance, which required a downtime window for resizing, but after the instance was restarted, the customer's API traffic was no longer throttled. No further action was necessary following the resizing of the customer's instances.
-        </div>
+		<p id="briefMeText" class="paragraph">
+				A customer reported that their production environment was operating slowly, with very little memory available on their AOS servers. They were receiving multiple 429 error messages from D365 through their API, which had been ongoing since earlier in the day. Investigation revealed that much of the throttling was due to the customer's own limits on high-priority traffic. Support asked if the customer would like to upgrade their instance, with the caveat that it would need to be restarted, and the customer agreed. Support subsequently scaled up the instance, which required a downtime window for resizing, but after the instance was restarted, the customer's API traffic was no longer throttled. No further action was necessary following the resizing of the customer's instances.
+		</p>
 		<script defer src="popup.js"></script>
 		<div style="font-size: 12px; color: #657b83; width: 70%;"><strike>Best viewed with Internet Explorer 6.0 or below</strike></div>
 	</body>

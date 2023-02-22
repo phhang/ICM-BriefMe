@@ -1,3 +1,17 @@
+const briefMeText = document.getElementById('briefMeText');
+// Load the previous state of the popup page from storage
+chrome.storage.local.get('briefMeTextState', (result) => {
+    if (result.briefMeTextState) {
+      // Restore the previous state of the popup page
+      briefMeText.innerText = result.briefMeTextState;
+    }
+  });
+// Save the current state of the popup page to storage
+function saveBriefMeTextState() {
+    const briefMeText = document.getElementById('briefMeText');
+    chrome.storage.local.set({ 'briefMeTextState': briefMeText.innerText });
+}
+
 // Add event listener to briefMe button
 const briefMeButton = document.getElementById("briefMeButton");
 briefMeButton.addEventListener("click", async () => {
@@ -12,9 +26,10 @@ briefMeButton.addEventListener("click", async () => {
     });
     const cappedText = alltextResult[0].result.slice(0, 6000);
     const summaryText = await sendRequestToAzure(cappedText);
-    alert(summaryText);
+    //alert(summaryText);
     const briefMeText = document.getElementById("briefMeText");
     briefMeText.innerText = summaryText;
+    saveBriefMeTextState();
     const response2 = await chrome.tabs.sendMessage(tab.id, {
         briefMe: "brief",
         summary: summaryText
@@ -34,9 +49,10 @@ currentStatusButton.addEventListener("click", async () => {
     });
     const cappedText = alltextResult[0].result.slice(-6000);
     const summaryText = await sendRequestToAzure(cappedText);
-    alert(summaryText);
+    //alert(summaryText);
     const briefMeText = document.getElementById("briefMeText");
     briefMeText.innerText = summaryText;
+    saveBriefMeTextState();
     const response2 = await chrome.tabs.sendMessage(tab.id, {
         briefMe: "status",
         summary: summaryText
@@ -82,9 +98,10 @@ function removeKustoElements() {
 function joinAllText() {
     const commentDivBody = document.querySelectorAll("div.body");
     var allText = "";
-    for (var i = commentDivBody.length - 1; i >= 0; i--) {
+    for (var i = commentDivBody.length - 2; i >= 0; i--) { // -2 to skip the last comment(details)
         var innerText = commentDivBody[i].innerText;
         allText += innerText;
     }
     return allText;
 }
+
