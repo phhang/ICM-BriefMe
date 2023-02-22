@@ -13,51 +13,50 @@ function saveBriefMeTextState() {
 }
 
 // Add event listener to briefMe button
-const briefMeButton = document.getElementById("briefMeButton");
-briefMeButton.addEventListener("click", async () => {
-    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-    let results = await chrome.scripting.executeScript({
-        target: { tabId: tab.id },
-        function: removeKustoElements
-    });
-    let alltextResult = await chrome.scripting.executeScript({
-        target: { tabId: tab.id },
-        function: joinAllText
-    });
-    const cappedText = alltextResult[0].result.slice(0, 6000);
-    const summaryText = await sendRequestToAzure(cappedText);
-    //alert(summaryText);
-    const briefMeText = document.getElementById("briefMeText");
-    briefMeText.innerText = summaryText;
-    saveBriefMeTextState();
-    const response2 = await chrome.tabs.sendMessage(tab.id, {
-        briefMe: "brief",
-        summary: summaryText
-    });
-});
+handleButtonClick("briefMeButton");
+handleButtonClick("currentStatusButton");
 
-const currentStatusButton = document.getElementById("currentStatusButton");
-currentStatusButton.addEventListener("click", async () => {
-    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-    let results = await chrome.scripting.executeScript({
-        target: { tabId: tab.id },
-        function: removeKustoElements
+function handleButtonClick(buttonId) {
+    const button = document.getElementById(buttonId);
+    button.addEventListener("click", async () => {
+        // Disable button to prevent multiple clicks
+        button.disabled = true;
+        const buttonContent = button.innerText;
+        button.innerText = "Loading...";
+        // Get all discussion text content
+        const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+        let results = await chrome.scripting.executeScript({
+            target: { tabId: tab.id },
+            function: removeKustoElements
+        });
+        let alltextResult = await chrome.scripting.executeScript({
+            target: { tabId: tab.id },
+            function: joinAllText
+        });
+        // Get the first/last 6000 characters due to token limit
+        const cappedText = buttonId == "briefMeButton" ? 
+            alltextResult[0].result.slice(0, 6000) : 
+            alltextResult[0].result.slice(-6000);
+        const summaryText = await sendRequestToAzureTest(cappedText);
+        const briefMeText = document.getElementById("briefMeText");
+        briefMeText.innerText = summaryText;
+        saveBriefMeTextState();
+        // Enable button
+        button.disabled = false;
+        button.innerText = buttonContent;
+        const briefMeMode = buttonId == "briefMeButton" ? "brifeMe" : "SITREP";
+        const contentResponse = await chrome.tabs.sendMessage(tab.id, {
+            briefMe: briefMeMode,
+            summary: summaryText
+        });
     });
-    let alltextResult = await chrome.scripting.executeScript({
-        target: { tabId: tab.id },
-        function: joinAllText
-    });
-    const cappedText = alltextResult[0].result.slice(-6000);
-    const summaryText = await sendRequestToAzure(cappedText);
-    //alert(summaryText);
-    const briefMeText = document.getElementById("briefMeText");
-    briefMeText.innerText = summaryText;
-    saveBriefMeTextState();
-    const response2 = await chrome.tabs.sendMessage(tab.id, {
-        briefMe: "status",
-        summary: summaryText
-    });
-});
+}
+
+
+async function sendRequestToAzureTest(icmText) {
+    await new Promise(r => setTimeout(r, 3000));
+    return icmText.slice(0, 100) + "\n A customer reported that their production environment was operating slowly, with very little memory available.";
+}
 
 async function sendRequestToAzure(icmText) {
     // alert("sendRequestToAzure");
