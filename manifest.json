@@ -22,7 +22,7 @@
     ],
     "content_security_policy": 
     {
-      "extension_pages": "script-src 'self'; object-src 'self'; connect-src https://briefmefunc.azurewebsites.net/api/HttpTriggerBriefMe;"
+      "extension_pages": "script-src 'self'; object-src 'self'; connect-src https://icm-briefme-fa.azurewebsites.net/api/BriefMeFunc;"
     },
     "action": {
         "default_popup": "popup.html",
@@ -42,7 +42,7 @@
     ],
     "host_permissions": [
         "https://portal.microsofticm.com/imp/v3/incidents/*",
-        "https://briefmefunc.azurewebsites.net/api/HttpTriggerBriefMe"
+        "https://icm-briefme-fa.azurewebsites.net/api/BriefMeFunc"
     ],
     "commands": {
         "_execute_action": {

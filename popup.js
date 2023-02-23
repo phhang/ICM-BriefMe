@@ -20,28 +20,44 @@ chrome.storage.local.get(['accessToken', 'accessTokenExpiry'], (result) => {
         const now = new Date();
         if (accessTokenExpiry > now) {
             // Access token is still valid
-            const loginButton = document.getElementById("loginButton");
-            changeWelcomeMsg(accessToken);
-            // hide login button
-            loginButton.style.display = "none";
+            loggedInState(accessToken);
         } else {
             // Access token has expired
-            chrome.storage.local.remove('accessToken');
-            chrome.storage.local.remove('accessTokenExpiry');
+            loggedOutState()
         }
     }
 });
 
-function changeWelcomeMsg(accessToken) {
+function loggedInState(accessToken) {
     const JwtPayload = JSON.parse(atob(accessToken.split('.')[1])); // Decode the JWT payload (second part of the token)
     const welcomeMsg = document.getElementById("WelcomeMsg");
     welcomeMsg.innerText = "Welcome, current user: " + JwtPayload.upn;
     const loginButton = document.getElementById("loginButton");
     // Hide login button
     loginButton.style.display = "none";
-    // Show logout button
-    const logoutButton = document.getElementById("logoutButton");
-    logoutButton.style.display = "block";
+    // Show logout briefMe SITREP buttons
+    const idNames = ["logoutButton", "briefMeButton", "currentStatusButton"];
+    idNames.forEach(idName => {
+        const element = document.getElementById(idName);
+        element.style.display = "block";
+    });
+}
+
+function loggedOutState() {
+    chrome.storage.local.clear(); // Clear all local storage
+    const welcomeMsg = document.getElementById("WelcomeMsg");
+    welcomeMsg.innerText = "Welcome, please login to use BriefMe";
+    const loginButton = document.getElementById("loginButton");
+    // Show login button
+    loginButton.style.display = "block";
+    // Hide logout briefMe SITREP buttons
+    const idNames = ["logoutButton", "briefMeButton", "currentStatusButton"];
+    idNames.forEach(idName => {
+        const element = document.getElementById(idName);
+        element.style.display = "none";
+    });
+    const briefMeText = document.getElementById("briefMeText");
+    briefMeText.innerText = "This plugin will genearte a summary of the incident. You may need to wait for ICM to fully load all discussion entries.";
 }
 
 /*
@@ -75,7 +91,7 @@ loginButton.addEventListener("click", async () => {
         // Save the access token and expire time to local storage
         chrome.storage.local.set({ "accessToken": accessToken, "accessTokenExpiry": expireTime });
         // Decode the JWT payload (second part of the token)
-        changeWelcomeMsg(accessToken);
+        loggedInState(accessToken);
     }
     authorizing.then(validate, console.error);
 });
@@ -83,15 +99,7 @@ loginButton.addEventListener("click", async () => {
 // Add event listener to logout button
 const logoutButton = document.getElementById("logoutButton");
 logoutButton.addEventListener("click", async () => {
-    chrome.storage.local.remove('accessToken');
-    chrome.storage.local.remove('accessTokenExpiry');
-    const welcomeMsg = document.getElementById("WelcomeMsg");
-    welcomeMsg.innerText = "Welcome, please login to use BriefMe";
-    const loginButton = document.getElementById("loginButton");
-    // Show login button
-    loginButton.style.display = "block";
-    // Hide logout button
-    logoutButton.style.display = "none";
+    loggedOutState();
 });
 
 // Add event listener to briefMe button
@@ -116,8 +124,10 @@ function handleButtonClick(buttonId) {
         const cappedText = buttonId == "briefMeButton" ? 
             alltextResult[0].result.slice(0, 6000) : 
             alltextResult[0].result.slice(-6000);
+        const briefMeMode = buttonId == "briefMeButton" ? "brifeMe" : "SITREP";
         const requestStartTime = performance.now();
-        const summaryText = await sendRequestToAzureTest(cappedText);
+        const icmId = "0000";
+        const summaryText = await sendRequestToAzure(cappedText, briefMeMode, icmId);
         const briefMeText = document.getElementById("briefMeText");
         briefMeText.innerText = summaryText;
         const requestEndTime = performance.now();
@@ -130,16 +140,11 @@ function handleButtonClick(buttonId) {
         button.innerText = buttonContent;
         // Send message to content.js
         const endTime = performance.now();
-        const briefMeMode = buttonId == "briefMeButton" ? "brifeMe" : "SITREP";
         const perfStats = {
             "time": (endTime - startTime).toFixed(2) + "ms",
             "requestTime": (requestEndTime - requestStartTime).toFixed(2) + "ms"
         };
-        const contentResponse = await chrome.tabs.sendMessage(tab.id, {
-            briefMe: briefMeMode,
-            summary: summaryText,
-            perfStats: perfStats
-        });
+        console.log(perfStats);
     });
 }
 
@@ -147,21 +152,40 @@ function handleButtonClick(buttonId) {
 * Helper functions
 */
 
-async function sendRequestToAzureTest(icmText) {
+async function sendRequestToAzureTest(icmText, mode, icmId) {
     await new Promise(r => setTimeout(r, 2000));
     return icmText.slice(0, 100) + "\n A customer reported that their production environment was operating slowly, with very little memory available.";
 }
 
-async function sendRequestToAzure(icmText) {
-    // alert("sendRequestToAzure");
+function getAccessToken() {
+    return new Promise((resolve, reject) => {
+        chrome.storage.local.get(['accessToken', 'accessTokenExpiry'], (result) => {
+            if (result.accessTokenExpiry > new Date().getTime()) {
+                resolve(result.accessToken);
+            } else {
+                reject("Access token expired");
+            }
+        });
+    });
+}
+
+async function sendRequestToAzure(icmText, mode, icmId) {
     // Send request to Azure function
-    const azFunc = atob('aHR0cHM6Ly9icmllZm1lZnVuYy5henVyZXdlYnNpdGVzLm5ldC9hcGkvSHR0cFRyaWdnZXJCcmllZk1l');
+    const azFunc = 'https://icm-briefme-fa.azurewebsites.net/api/BriefMeFunc'
+    const accessToken = await getAccessToken();
     const response = await fetch(azFunc, {
         method: 'POST',
         headers: {
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            'Authentication': 'Bearer ' + accessToken
         },
-        body: JSON.stringify({ "incomeMessage":  icmText})
+        body: JSON.stringify({ 
+            "icmId": icmId,
+            "icmText":  icmText,
+            "mode": mode
+        })
+    }).catch((error) => {
+        console.error('Error:', error);
     });
     if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
