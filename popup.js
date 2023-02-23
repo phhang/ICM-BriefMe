@@ -39,17 +39,60 @@ function changeWelcomeMsg(accessToken) {
     const loginButton = document.getElementById("loginButton");
     // Hide login button
     loginButton.style.display = "none";
+    // Show logout button
+    const logoutButton = document.getElementById("logoutButton");
+    logoutButton.style.display = "block";
 }
 
 /*
 * Add event listeners
 */ 
 
-// Save the current state of the popup page to storage
-function saveBriefMeTextState() {
-    const briefMeText = document.getElementById('briefMeText');
-    chrome.storage.local.set({ 'briefMeTextState': briefMeText.innerText });
-}
+// Add event listener to login button
+const loginButton = document.getElementById("loginButton");
+loginButton.addEventListener("click", async () => {
+    const redirect_uri = chrome.identity.getRedirectURL()
+    const tenant_id = "72f988bf-86f1-41af-91ab-2d7cd011db47";
+    const client_id = "b14aa3b9-e15e-4522-a70d-520854e6f595";
+    let authorizing = chrome.identity.launchWebAuthFlow(
+        {
+          url: 'https://login.microsoftonline.com/' + tenant_id + '/oauth2/v2.0/authorize?' + // <= here tenant id or just common
+            'response_type=token' +
+            '&response_mode=fragment' +
+            '&prompt=login' +
+            '&client_id=' + client_id + // <= here client id from azure console
+            '&redirect_uri=' + redirect_uri +
+            '&scope=openid',
+          interactive: true
+        }
+    );
+    function validate(redirect_url) {
+        const urlParams = new URLSearchParams(redirect_url.split('#')[1]); // Get the query params after the #
+        const accessToken = urlParams.get('access_token');
+        const expiresIn = urlParams.get('expires_in');
+        // Set expire time using current time + expiresIn to int in second
+        const expireTime = new Date().getTime() + parseInt(expiresIn) * 1000;
+        // Save the access token and expire time to local storage
+        chrome.storage.local.set({ "accessToken": accessToken, "accessTokenExpiry": expireTime });
+        // Decode the JWT payload (second part of the token)
+        changeWelcomeMsg(accessToken);
+    }
+    authorizing.then(validate, console.error);
+});
+
+// Add event listener to logout button
+const logoutButton = document.getElementById("logoutButton");
+logoutButton.addEventListener("click", async () => {
+    chrome.storage.local.remove('accessToken');
+    chrome.storage.local.remove('accessTokenExpiry');
+    const welcomeMsg = document.getElementById("WelcomeMsg");
+    welcomeMsg.innerText = "Welcome, please login to use BriefMe";
+    const loginButton = document.getElementById("loginButton");
+    // Show login button
+    loginButton.style.display = "block";
+    // Hide logout button
+    logoutButton.style.display = "none";
+});
 
 // Add event listener to briefMe button
 handleButtonClick("briefMeButton");
@@ -78,7 +121,10 @@ function handleButtonClick(buttonId) {
         const briefMeText = document.getElementById("briefMeText");
         briefMeText.innerText = summaryText;
         const requestEndTime = performance.now();
-        saveBriefMeTextState();
+
+        // Save the current state of the popup page to storage
+        chrome.storage.local.set({ 'briefMeTextState': briefMeText.innerText });
+
         // Enable button
         button.disabled = false;
         button.innerText = buttonContent;
@@ -96,6 +142,10 @@ function handleButtonClick(buttonId) {
         });
     });
 }
+
+/*
+* Helper functions
+*/
 
 async function sendRequestToAzureTest(icmText) {
     await new Promise(r => setTimeout(r, 2000));
@@ -153,37 +203,3 @@ function joinAllText() {
     }
     return allText;
 }
-
-// Add event listener to login button
-const loginButton = document.getElementById("loginButton");
-loginButton.addEventListener("click", async () => {
-    const redirect_uri = chrome.identity.getRedirectURL()
-    const tenant_id = "72f988bf-86f1-41af-91ab-2d7cd011db47";
-    const client_id = "b14aa3b9-e15e-4522-a70d-520854e6f595";
-    let authorizing = chrome.identity.launchWebAuthFlow(
-        {
-          url: 'https://login.microsoftonline.com/' + tenant_id + '/oauth2/v2.0/authorize?' + // <= here tenant id or just common
-            'response_type=token' +
-            '&response_mode=fragment' +
-            '&prompt=login' +
-            '&client_id=' + client_id + // <= here client id from azure console
-            '&redirect_uri=' + redirect_uri +
-            '&scope=openid',
-          interactive: true
-        }
-    );
-    function validate(redirect_url) {
-        const urlParams = new URLSearchParams(redirect_url.split('#')[1]); // Get the query params after the #
-        const accessToken = urlParams.get('access_token');
-        const expiresIn = urlParams.get('expires_in');
-        // Set expire time using current time + expiresIn to int in second
-        const expireTime = new Date().getTime() + parseInt(expiresIn) * 1000;
-        // Save the access token and expire time to local storage
-        chrome.storage.local.set({ "accessToken": accessToken, "accessTokenExpiry": expireTime });
-        // Decode the JWT payload (second part of the token)
-        
-        changeWelcomeMsg(accessToken);
-    }
-    authorizing.then(validate, console.error);
-});
-
